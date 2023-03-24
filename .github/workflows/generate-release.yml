@@ -3,10 +3,13 @@ name: generate-release
 on:
   workflow_call:
     inputs:
-      is_release_branch:
+      IS_RELEASE_BRANCH:
         required: true
         type: boolean
-      incremental_type:
+      INCREMENTAL_TYPE:
+        required: true
+        type: string
+      PRERELEASE_NAME:
         required: true
         type: string
 

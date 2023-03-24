@@ -1,0 +1,58 @@
+name: release-automation
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  check_pr_branch_type:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v2
+
+      - name: Determine branch type
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        run: |
+          echo "BRANCH_PREFIX=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)" >> $GITHUB_ENV
+          
+          echo "INCREMENTAL_TYPE='UNKNONW'" >> $GITHUB_ENV
+          echo "IS_RELEASE_BRANCH=false" >> $GITHUB_ENV
+          echo "IS_GH_ACTION=false" >> $GITHUB_ENV
+
+          if [ "${{ env.BRANCH_PREFIX }}" == "release" ]; then
+            echo "IS_RELEASE_BRANCH=true" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE='MAJOR'" >> $GITHUB_ENV
+          elif [ "${{ BRANCH_PREFIX }}" == "feature" ]; then
+            echo "INCREMENTAL_TYPE='MINOR'" >> $GITHUB_ENV
+          elif [ "${{ BRANCH_PREFIX }}" == "hotfix" ]; then
+            echo "INCREMENTAL_TYPE='MINOR'" >> $GITHUB_ENV
+          elif [ "${{ BRANCH_PREFIX }}" == "patch" ]; then
+            echo "INCREMENTAL_TYPE='PATCH'" >> $GITHUB_ENV
+          elif [ "${{ BRANCH_PREFIX }}" == "gh-action" ]; then
+            IS_GH_ACTION=true
+            echo "INCREMENTAL_TYPE='UNKNOWN'" >> $GITHUB_ENV
+          else
+            echo "INCREMENTAL_TYPE='UNKNOWN'" >> $GITHUB_ENV
+          fi
+          
+          VALIDATE_PRE=$(echo ${{ env.BRANCH_NAME }} | cut -d'/' -f2)
+          if [ "${VALIDATE_PRE}" == "pre" ]; then
+            echo "PRERELEASE_NAME=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f3)" >> $GITHUB_ENV
+          fi
+
+      - name: Generate Release
+        if: ${{ env.INCREMENTAL_TYPE }} != 'UNKNOWN'
+        uses: ./workflows/generate-release.yml
+        with:
+          IS_RELEASE_BRANCH: ${{ env.IS_RELEASE_BRANCH }}
+          INCREMENTAL_TYPE: ${{ env.INCREMENTAL_TYPE }}
+
+      - name: Error Handling
+        if: ${{ env.IS_GH_ACTION }} == false
+        run: echo "::error file=main.yml::Wrong Branch Name"
+

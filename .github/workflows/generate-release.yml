@@ -3,13 +3,7 @@ name: generate-release
 on:
   workflow_call:
     inputs:
-      IS_RELEASE_BRANCH:
-        required: true
-        type: boolean
       INCREMENTAL_TYPE:
-        required: true
-        type: string
-      PRERELEASE_NAME:
         required: true
         type: string
 
@@ -59,33 +53,6 @@ jobs:
             echo "CURRENT_TAG_NAME=$(echo "${{ steps.get_current_release.outputs.release }}" | cut -d'-' -f1 | sed 's/^v//')" >> $GITHUB_ENV
           fi
 
-          # Set prerelease value
-          CURRENT_PRERELEASE=$(echo "${{ steps.get_current_release.outputs.release }}" | cut -d'-' -f2)
-          echo "CURRENT_PRERELEASE=$(echo "${{ steps.get_current_release.outputs.release }}" | cut -d'-' -f2)" >> $GITHUB_ENV
-          if [ -z "${{ env.PRERELEASE_NAME }}" ]; then
-            echo "PRERELEASE_TYPE="REMOVE"" >> $GITHUB_ENV
-            if [ -v "$CURRENT_PRERELEASE" ]; then
-              echo "INCREMENTAL_TYPE="NONE"" >> $GITHUB_ENV
-            fi
-          else
-            echo "PRERELEASE_TYPE="${{ env.PRERELEASE_NAME }}"" >> $GITHUB_ENV
-            if [ -v "$CURRENT_PRERELEASE" ]; then
-              echo "INCREMENTAL_TYPE="NONE"" >> $GITHUB_ENV
-            fi
-          fi
-
-      - name: Set prerelease version
-        run: |
-          # Set prerelease value
-          if [ "${{ env.PRERELEASE_TYPE }}" == "REMOVE" ]; then
-            echo "PRERELEASE=false" >> $GITHUB_ENV
-          elif [ -z "${{ env.PRERELEASE_TYPE }}" ]; then
-            echo "[ERROR] PRERELEASE is not valid."
-            exit 1;
-          else
-            echo "PRERELEASE=true" >> $GITHUB_ENV
-          fi
-
       #https://github.com/marketplace/actions/update-semantic-version
       - name: Set new semantic version
         id: new_version
@@ -93,14 +60,13 @@ jobs:
         with:
           current-version: '${{ env.CURRENT_TAG_NAME }}' #X.Y.Z
           increment-version-fragment: '${{ env.INCREMENTAL_TYPE }}'
-          prerelease-fragment: '${{ env.PRERELEASE_TYPE }}'
 
       - name: Set current release version
         run: |
           echo "CURRENT_MAJOR_VERSION=$(echo ${{ env.CURRENT_TAG_NAME }} | cut -d'.' -f1)" >> $GITHUB_ENV
 
       - name: Create release/stable branch
-        if: ${{ env.CURRENT_MAJOR_VERSION != '0' && env.VERSION_TYPE == 'release' }}
+        if: ${{ env.CURRENT_MAJOR_VERSION != '0' && env.INCREMENTAL_TYPE == 'MAJOR' }}
         uses: peterjgrainger/action-create-branch@v2.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
@@ -115,4 +81,3 @@ jobs:
             tag_name: 'v${{ steps.new_version.outputs.updated-version }}'
             release_name: 'v${{ steps.new_version.outputs.updated-version }}'
             body: ${{ github.event.pull_request.body }}
-            prerelease: ${{ env.PRERELEASE }}

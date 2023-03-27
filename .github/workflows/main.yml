@@ -2,6 +2,9 @@ name: release-automation-main
 
 on:
   workflow_call:
+    secrets:
+      GIT_ACCESS_TOKEN:
+        required: true
 
 jobs:
   check_pr_branch_type:

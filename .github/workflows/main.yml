@@ -40,6 +40,6 @@ jobs:
           INCREMENTAL_TYPE: ${{ env.INCREMENTAL_TYPE }}
 
       - name: Error Handling
-        if: ${{ env.SKIP_GEN_RELEASE }} == false
+        if: ${{ env.SKIP_GEN_RELEASE }} == false && ${{ env.INCREMENTAL_TYPE }} == 'UNKNOWN'
         run: echo "::error file=main.yml::Wrong Branch Name"
 

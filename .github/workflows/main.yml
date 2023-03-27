@@ -1,14 +1,11 @@
 name: release-automation-main
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  workflow_call:
+
 jobs:
   check_pr_branch_type:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
     steps:
       - uses: actions/checkout@v2
       - name: Determine branch type

@@ -63,8 +63,7 @@ jobs:
     needs: check_pr_branch_type
     env:
       INCREMENTAL_TYPE: ${{ needs.check_pr_branch_type.outputs.incremental_type }}
-      SKIP_GEN_RELEASE: ${{ needs.check_pr_branch_type.outputs.skip_gen_release }}
-    if: ${{ env.SKIP_GEN_RELEASE }} == false
+    if: ${{ needs.check_pr_branch_type.outputs.skip_gen_release }} == false
     runs-on: ubuntu-latest
     steps:
       - name: Check release existence

@@ -11,6 +11,9 @@ jobs:
   update_release_note:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v2
+
       #https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28
       - name: Check release existence
         id: check_release

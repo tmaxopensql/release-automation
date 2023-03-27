@@ -19,21 +19,21 @@ jobs:
           branch_prefix=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)
           
           if [ "$branch_prefix" == "release" ]; then
-            echo "INCREMENTAL_TYPE='MAJOR'" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE=MAJOR'" >> $GITHUB_ENV
             echo "IS_RELEASE_BRANCH=true" >> $GITHUB_ENV
           elif [ "$branch_prefix" == "feature" ]; then
-            echo "INCREMENTAL_TYPE='MINOR'" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE=MINOR" >> $GITHUB_ENV
           elif [ "$branch_prefix" == "hotfix" ]; then
-            echo "INCREMENTAL_TYPE='MINOR'" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE=MINOR" >> $GITHUB_ENV
           elif [ "$branch_prefix" == "patch" ]; then
-            echo "INCREMENTAL_TYPE='PATCH'" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE=PATCH" >> $GITHUB_ENV
           else 
             case "$branch_prfix" in
               "gh-action") skip_gen_release=true ;;
               *) skip_gen_release=false ;;
             esac
             echo "SKIP_GEN_RELEASE=$skip_gen_release" >> $GITHUB_ENV
-            echo "INCREMENTAL_TYPE='UNKNOWN'" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE=UNKNOWN" >> $GITHUB_ENV
           fi
 
       - name: Error Handling

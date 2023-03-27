@@ -1,4 +1,4 @@
-name: release-automation
+name: release-automation-main
 
 on:
   pull_request:
@@ -28,26 +28,21 @@ jobs:
           elif [ "$branch_prefix" == "patch" ]; then
             echo "INCREMENTAL_TYPE='PATCH'" >> $GITHUB_ENV
           else 
-            if [ "$branch_prefix" == "gh-action" ]; then
-              echo "IS_GH_ACTION=true" >> $GITHUB_ENV
-            fi
-            echo "incremental_type='UNKNOWN'" >> $GITHUB_ENV
-          fi
-
-          VALIDATE_PRE=$(echo ${{ env.BRANCH_NAME }} | cut -d'/' -f2)
-          if [ "${VALIDATE_PRE}" == "pre" ]; then
-            echo "PRERELEASE_NAME=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f3)" >> $GITHUB_ENV
+            case "$branch_prfix" in
+              "gh-action") skip_gen_release=true ;;
+              *) skip_gen_release=false ;;
+            esac
+            echo "SKIP_GEN_RELEASE=$skip_gen_release" >> $GITHUB_ENV
+            echo "INCREMENTAL_TYPE='UNKNOWN'" >> $GITHUB_ENV
           fi
 
       - name: Generate Release
         if: ${{ env.INCREMENTAL_TYPE }} != 'UNKNOWN'
         uses: ./workflows/generate-release.yml
         with:
-          IS_RELEASE_BRANCH: ${{ env.IS_RELEASE_BRANCH }}
           INCREMENTAL_TYPE: ${{ env.INCREMENTAL_TYPE }}
-          PRERELEASE_NAME: ${{ env.PRERELEASE_NAME }}
 
       - name: Error Handling
-        if: ${{ env.IS_GH_ACTION }} == false
+        if: ${{ env.SKIP_GEN_RELEASE }} == false
         run: echo "::error file=main.yml::Wrong Branch Name"
 

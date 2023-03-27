@@ -35,7 +35,7 @@ jobs:
 
       - name: Generate Release
         if: ${{ env.INCREMENTAL_TYPE }} != 'UNKNOWN'
-        uses: ./workflows/generate-release.yml
+        uses: tmaxopensql/release-automation/.github/workflows/generate-release.yml@main
         with:
           INCREMENTAL_TYPE: ${{ env.INCREMENTAL_TYPE }}
 

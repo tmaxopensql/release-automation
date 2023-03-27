@@ -2,6 +2,10 @@ name: release-automation-main
 
 on:
   workflow_call:
+    inputs:
+      RELEASE_NOTE:
+        required: true
+        type: string
     secrets:
       GIT_ACCESS_TOKEN:
         required: true
@@ -112,4 +116,4 @@ jobs:
         with:
             tag_name: 'v${{ steps.new_version.outputs.updated-version }}'
             release_name: 'v${{ steps.new_version.outputs.updated-version }}'
-            body: ${{ github.event.pull_request.body }}
+            body: ${{ inputs.RELEASE_NOTE }}

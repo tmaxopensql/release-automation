@@ -13,6 +13,9 @@ on:
 jobs:
   check_pr_branch_type:
     runs-on: ubuntu-latest
+    outputs:
+      incremental_type: ${{ steps.determine_branch_type.outputs.incremental_type }}
+      skip_gen_release: ${{ steps.error_handling.outputs.skip_gen_release }}
     steps:
       - uses: actions/checkout@v2
       - name: Determine branch type
@@ -21,29 +24,48 @@ jobs:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         run: |
           branch_prefix=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)
-          
+          echo "branch_prefix=$branch_prefix" >> $GITHUB_ENV
+
           if [ "$branch_prefix" == "release" ]; then
-            echo "INCREMENTAL_TYPE=MAJOR'" >> $GITHUB_ENV
-            echo "IS_RELEASE_BRANCH=true" >> $GITHUB_ENV
+            incremental_type=MAJOR
           elif [ "$branch_prefix" == "feature" ]; then
-            echo "INCREMENTAL_TYPE=MINOR" >> $GITHUB_ENV
+            incremental_type=MINOR
           elif [ "$branch_prefix" == "hotfix" ]; then
-            echo "INCREMENTAL_TYPE=MINOR" >> $GITHUB_ENV
+            incremental_type=MINOR
           elif [ "$branch_prefix" == "patch" ]; then
-            echo "INCREMENTAL_TYPE=PATCH" >> $GITHUB_ENV
-          else 
-            case "$branch_prfix" in
-              "gh-action") skip_gen_release=true ;;
-              *) skip_gen_release=false ;;
-            esac
-            echo "SKIP_GEN_RELEASE=$skip_gen_release" >> $GITHUB_ENV
-            echo "INCREMENTAL_TYPE=UNKNOWN" >> $GITHUB_ENV
+            incremental_type=PATCH
+          else
+            incremental_type=UNKNOWN
+          fi
+          
+          if [ "$incremental_type" == "UNKNOWN" ] ; then
+            echo "needs_error_handling=true" >> $GITHUB_ENV
+          else
+            echo "incremental_type=$incremental_type" >> $GITHUB_OUTPUT
           fi
 
       - name: Error Handling
-        if: ${{ env.SKIP_GEN_RELEASE }} == false && ${{ env.INCREMENTAL_TYPE }} == 'UNKNOWN'
-        run: echo "::error file=main.yml::Wrong Branch Name"
+        id: error_handling
+        if: ${{ env.needs_error_handling }} == true
+        run: |          
+          case "$branch_prfix" in
+            "gh-action") skip_gen_release=true ;;
+            *) skip_gen_release=false ;;
+          esac
+          
+          if [ ! $skip_gen_release ] ; then
+            echo "::error file=main.yml::Wrong Branch Name"
+          else
+            echo "skip_gen_release=true" >> $GITHUB_OUTPUT
+          fi
 
+  generate_new_release:
+    runs-on: ubuntu-latest
+    needs: check_pr_branch_type
+    if: ${{ needs.check_pr_branch_type.outputs.skip_gen_release }} == false
+    env:
+      INCREMENTAL_TYPE: ${{ needs.check_pr_branch_type.outputs.incremental_type }}
+    steps:
       - name: Check release existence
         id: check_release
         env:
@@ -90,6 +112,7 @@ jobs:
           else
             echo "CURRENT_TAG_NAME=$(echo "${{ steps.get_current_release.outputs.release }}" | cut -d'-' -f1 | sed 's/^v//')" >> $GITHUB_ENV
           fi
+
       #https://github.com/marketplace/actions/update-semantic-version
       - name: Set new semantic version
         id: new_version
@@ -101,6 +124,7 @@ jobs:
       - name: Set current release version
         run: |
           echo "CURRENT_MAJOR_VERSION=$(echo ${{ env.CURRENT_TAG_NAME }} | cut -d'.' -f1)" >> $GITHUB_ENV
+
       - name: Create release/stable branch
         if: ${{ env.CURRENT_MAJOR_VERSION != '0' && env.INCREMENTAL_TYPE == 'MAJOR' }}
         uses: peterjgrainger/action-create-branch@v2.2.0

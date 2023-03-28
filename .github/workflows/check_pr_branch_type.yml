@@ -34,7 +34,7 @@ jobs:
               ;;
           esac
           
-          if [ "$acceptable_prefix" -ne 0 ] ; then
+          if [ "$acceptable_prefix" != "true" ] ; then
             echo "::error ::Wrong Branch Name"
             exit 1
           fi

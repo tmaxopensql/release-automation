@@ -6,7 +6,7 @@ This repository contains github action for release automation.
 <img
     src="/overview.png"
     alt="Release Automation Overview"
-    style="display: inline-block; margin: 0 auto; width: 640px"
+    style="display: inline-block; margin: 0 auto"
 />
 </p>
 
@@ -28,7 +28,7 @@ NOTE: The release automation workflow is provided as a starter workflow. You can
 <img
     src="/starter_workflow.png"
     alt="Starter Workflow"
-    style="display: inline-block; margin: 0 auto; width: 640px"
+    style="display: inline-block; margin: 0 auto"
 />
 </p>
 
@@ -37,7 +37,7 @@ NOTE: The release automation workflow is provided as a starter workflow. You can
 <img
     src="/branch_policy.png"
     alt="branch_policy"
-    style="display: inline-block; margin: 0 auto; width: 640px"
+    style="display: inline-block; margin: 0 auto"
 />
 </p>
 

@@ -41,7 +41,7 @@ jobs:
           
       - name: Error Handling
         id: error_handling
-        if: ${{ env.needs_error_handling }} == 'true'
+        if: ${{ env.needs_error_handling == "true" }}
         run: |          
           case "$branch_prfix" in
             # Exceptions for wrong branch name

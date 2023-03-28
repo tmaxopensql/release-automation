@@ -1,7 +1,9 @@
 name: check_pull_request_branch_type
 
 on:
-  workflow_call:
+  pull_request:
+    types: [opened, reopened]
+    branches: [main]
 
 jobs:
   check_pr_branch_type:

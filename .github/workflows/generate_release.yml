@@ -1,4 +1,4 @@
-name: release-automation-main
+name: generate_release
 
 on:
   workflow_call:
@@ -11,67 +11,25 @@ on:
         required: true
 
 jobs:
-  check_pr_branch_type:
-    runs-on: ubuntu-latest
-    outputs:
-      incremental_type: ${{ steps.determine_branch_type.outputs.incremental_type }}
-      skip_gen_release: ${{ steps.error_handling.outputs.skip_gen_release }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Determine branch type
-        id: determine_branch_type
-        env:
-          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
-        run: |
-          branch_prefix=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)
-          echo "branch_prefix=$branch_prefix" >> $GITHUB_ENV
-
-          if [ "$branch_prefix" == "release" ]; then
-            incremental_type=MAJOR
-          elif [ "$branch_prefix" == "feature" ]; then
-            incremental_type=MINOR
-          elif [ "$branch_prefix" == "hotfix" ]; then
-            incremental_type=MINOR
-          elif [ "$branch_prefix" == "patch" ]; then
-            incremental_type=PATCH
-          else
-            incremental_type=UNKNOWN
-          fi
-          
-          if [ "$incremental_type" == "UNKNOWN" ] ; then
-            echo "needs_error_handling=true" >> $GITHUB_ENV
-          else
-            echo "incremental_type=$incremental_type" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Error Handling
-        id: error_handling
-        if: ${{ env.needs_error_handling }} == true
-        run: |          
-          case "$branch_prfix" in
-            "gh-action")
-              skip_gen_release=true
-              ;;
-            *)
-              skip_gen_release=false
-              ;;
-          esac
-          
-          if [ "$skip_gen_release" == "true" ] ; then
-            echo "skip_gen_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "Wrong branch name"
-            echo "skip_gen_release=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-
   generate_new_release:
-    needs: check_pr_branch_type
-    env:
-      INCREMENTAL_TYPE: ${{ needs.check_pr_branch_type.outputs.incremental_type }}
-    if: ${{ needs.check_pr_branch_type.outputs.skip_gen_release }} == 'false'
     runs-on: ubuntu-latest
     steps:
+      - name: Get version incremental type
+        id: get_incremental_type
+        uses: tmaxopensql/release-automation/.github/workflows/check_pr_branch_type.yml@main
+
+      - name: Check the version incremental type
+        id: check_incremental_type
+        env:
+          INCREMENTAL_TYPE: ${{ steps.get_incremental_type.outputs.incremental_type }}
+        run: |
+          if [ ${{ env.INCREMENTAL_TYPE }} != 'UNKNOWN' ] ; then
+            echo "INCREMENTAL_TYPE=${{ env.INCREMENTAL_TYPE }}" >> $GITHUB_ENV
+          else
+            echo "::notice::Skipping release generation"
+            exit 0
+          fi
+
       - name: Check release existence
         id: check_release
         env:

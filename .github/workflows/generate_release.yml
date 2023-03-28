@@ -6,9 +6,6 @@ on:
       RELEASE_NOTE:
         required: true
         type: string
-      INCREMENTAL_TYPE:
-        required: true
-        type: string
     secrets:
       GIT_ACCESS_TOKEN:
         required: true
@@ -17,13 +14,49 @@ jobs:
   generate_new_release:
     runs-on: ubuntu-latest
     steps:
-      - name: Check the version incremental type
-        id: check_incremental_type
+      - uses: actions/checkout@v2
+      
+      - name: Determine branch type
+        id: determine_branch_type
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [ ${{ env.INCREMENTAL_TYPE }} != 'UNKNOWN' ] ; then
-            echo "INCREMENTAL_TYPE=${{ env.INCREMENTAL_TYPE }}" >> $GITHUB_ENV
+          branch_prefix=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)
+          echo "branch_prefix=$branch_prefix" >> $GITHUB_ENV
+          
+          if [ "$branch_prefix" == "release" ]; then
+            incremental_type=MAJOR
+          elif [ "$branch_prefix" == "feature" ]; then
+            incremental_type=MINOR
+          elif [ "$branch_prefix" == "hotfix" ]; then
+            incremental_type=MINOR
+          elif [ "$branch_prefix" == "patch" ]; then
+            incremental_type=PATCH
           else
-            echo "::notice::Skipping release generation"
+            incremental_type=UNKNOWN
+          fi
+          echo "INCREMENTAL_TYPE=$incremental_type" >> $GITHUB_ENV
+      
+      # Exceptions skip release generation process
+      - name: Error handling for unknown branches
+        if: ${{ env.INCREMENTAL_TYPE == 'UNKNOWN' }}
+        run: |
+          case "$branch_prefix" in
+            # Exceptions for wrong branch name
+            "gh-action")
+              skip_gen_release=true
+              ;;
+            # Everything else is wrong
+            *)
+              skip_gen_release=false
+              ;;
+          esac
+          
+          if [ "$skip_gen_release" == "false" ] ; then
+            echo "::error ::Wrong Branch Name"
+            exit 1
+          else
+            echo "::notice ::Skipping Release Generation"
             exit 0
           fi
 

@@ -57,11 +57,12 @@ jobs:
               ;;
           esac
           
-          if [ $skip_gen_release -eq 1 ] ; then
-            echo "Wrong branch name"
-            exit 1
-          else
+          if [ "$skip_gen_release" == "true" ] ; then
             echo "skip_gen_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "Wrong branch name"
+            echo "skip_gen_release=false" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
   generate_new_release:

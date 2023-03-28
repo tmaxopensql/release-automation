@@ -49,12 +49,17 @@ jobs:
         if: ${{ env.needs_error_handling }} == true
         run: |          
           case "$branch_prfix" in
-            "gh-action") skip_gen_release=true ;;
-            *) skip_gen_release=false ;;
+            "gh-action")
+              skip_gen_release=true
+              ;;
+            *)
+              skip_gen_release=false
+              ;;
           esac
           
           if [ ! $skip_gen_release ] ; then
-            echo "::error file=main.yml::Wrong Branch Name"
+            echo "Wrong branch name"
+            exit 1
           else
             echo "skip_gen_release=true" >> $GITHUB_OUTPUT
           fi
@@ -63,7 +68,7 @@ jobs:
     needs: check_pr_branch_type
     env:
       INCREMENTAL_TYPE: ${{ needs.check_pr_branch_type.outputs.incremental_type }}
-    if: ${{ needs.check_pr_branch_type.outputs.skip_gen_release }} == false
+    if: ${{ needs.check_pr_branch_type.outputs.skip_gen_release }} == 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Check release existence

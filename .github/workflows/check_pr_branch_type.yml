@@ -4,59 +4,37 @@ on:
   pull_request:
     types: [opened, reopened]
     branches: [main]
-  
-  workflow_call:
-  
+
 jobs:
   check_pr_branch_type:
     runs-on: ubuntu-latest
-    outputs:
-      incremental_type: ${{ steps.determine_branch_type.outputs.incremental_type }}
     steps:
       - uses: actions/checkout@v2
       
-      - name: Determine branch type
-        id: determine_branch_type
+      - name: Distinguish branch type
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         run: |
           branch_prefix=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)
-          echo "branch_prefix=$branch_prefix" >> $GITHUB_ENV
-          if [ "$branch_prefix" == "release" ]; then
-            incremental_type=MAJOR
-          elif [ "$branch_prefix" == "feature" ]; then
-            incremental_type=MINOR
-          elif [ "$branch_prefix" == "hotfix" ]; then
-            incremental_type=MINOR
-          elif [ "$branch_prefix" == "patch" ]; then
-            incremental_type=PATCH
-          else
-            incremental_type=UNKNOWN
-          fi
           
-          if [ "$incremental_type" == "UNKNOWN" ] ; then
-            echo "needs_error_handling=true" >> $GITHUB_ENV
-          else
-            echo "needs_error_handling=false" >> $GITHUB_ENV
-            echo "incremental_type=$incremental_type" >> $GITHUB_OUTPUT
-          fi
-          
-      - name: Error Handling
-        id: error_handling
-        if: ${{ env.needs_error_handling == 'true' }}
-        run: |          
           case "$branch_prefix" in
-            # Exceptions for wrong branch name
-            "gh-action")
-              skip_gen_release=true
+            # These are the normally used branch prefixes
+            "release"|"feature"|"hotfix"|"patch")
+              acceptable_prefix=true
               ;;
-            # Everything else is wrong
+            
+            # These are the special exceptions
+            "gh-action")
+              acceptable_prefix=true
+              ;;
+            
+            # These are the unacceptable branch prefixes
             *)
-              skip_gen_release=false
+              acceptable_prefix=false
               ;;
           esac
           
-          if [ "$skip_gen_release" == "false" ] ; then
+          if [ "$acceptable_prefix" -ne 0 ] ; then
             echo "::error ::Wrong Branch Name"
             exit 1
           fi

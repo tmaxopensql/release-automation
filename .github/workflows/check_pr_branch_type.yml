@@ -4,7 +4,9 @@ on:
   pull_request:
     types: [opened, reopened]
     branches: [main]
-
+  
+  workflow_call:
+  
 jobs:
   check_pr_branch_type:
     runs-on: ubuntu-latest

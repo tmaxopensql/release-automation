@@ -43,7 +43,7 @@ jobs:
         id: error_handling
         if: ${{ env.needs_error_handling == 'true' }}
         run: |          
-          case "$branch_prfix" in
+          case "$branch_prefix" in
             # Exceptions for wrong branch name
             "gh-action")
               skip_gen_release=true

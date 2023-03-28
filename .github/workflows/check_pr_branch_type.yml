@@ -34,7 +34,9 @@ jobs:
               ;;
           esac
           
-          if [ "$acceptable_prefix" != "true" ] ; then
+          if [ "$acceptable_prefix" == "true" ] ; then
+            echo "::notice ::Pull Request Granted with Branch Type: $branch_prefix"
+          else
             echo "::error ::Wrong Branch Name"
             exit 1
           fi

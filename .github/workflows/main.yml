@@ -57,7 +57,7 @@ jobs:
               ;;
           esac
           
-          if [ $skip_gen_release -eq 1] ; then
+          if [ $skip_gen_release -eq 1 ] ; then
             echo "Wrong branch name"
             exit 1
           else

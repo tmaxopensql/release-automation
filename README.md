@@ -1,5 +1,67 @@
 # Release Automation
-This repository contains github action for release automation. The automation system follows the policies introduced below.
+This repository contains github action for release automation.
+
+## Overview
+<p align="center">
+<img
+    src="/overview.png"
+    alt="Release Automation Overview"
+    style="display: inline-block; margin: 0 auto; width: 640px"
+/>
+</p>
+
+The release automation goes through the following process:
+- Pull request is created by a developer with one of the following branch name prefixes (if not, the pull request is blocked by the required check):
+    - release/**
+    - feature/**
+    - hotfix/**
+    - patch/**
+    - gh-action/**
+- After reviewing the pull request, the source code admin will accept and close the pull request
+- Upon closing the pull request, release automation workflow is triggered
+- The workflow will determine which version (major, minor, patch, or none) must be updated by examining the prefix of the branch name
+- With the new version, a release tag is created with a release note generated from the pull request message
+
+NOTE: The release automation workflow is provided as a starter workflow. You can easily add this workflow to your repository using the pre-made workflow template (starter workflow is not provided for private repositories)
+
+<p align="center">
+<img
+    src="/starter_workflow.png"
+    alt="Starter Workflow"
+    style="display: inline-block; margin: 0 auto; width: 640px"
+/>
+</p>
+
+## OpenSQL Branch Policy
+<p align="center">
+<img
+    src="/branch_policy.png"
+    alt="branch_policy"
+    style="display: inline-block; margin: 0 auto; width: 640px"
+/>
+</p>
+
+You must use specific branch name prefix for your pull request. Here are the prefixes and their rules.
+
+- "release"
+    - This branch name prefix is used for new release of the product
+    - The naming format must be "release/\[new version\]"
+    - Once this branch is merged to the main branch, the major version is updated and a stable branch is automatically created with the previous major version
+- "feature"
+    - This branch name prefix is used for new feature implementation
+    - The naming format must be "feature/\[new feature name\]"
+    - Once this branch is merged to the main branch, the minor version is updated
+- "hotfix"
+    - This branch name prefix is used for fixing critical security-related issues
+    - The naming format must be "hotfix/\[the issue detail\]"
+    - Once this branch is merged to the main branch, the minor version is updated
+- "patch"
+    - This branch name prefix is used for fixing bugs
+    - The naming format must be "feature/\[the fix detail\]"
+    - Once this branch is merged to the main branch, the patch version is updated
+- The following are the exceptions that will be accepted for pull request but will not create a new release
+    - "gh-action"
+- Any other branch name prefix will be blocked by the required checks
 
 ## OpenSQL Version Policy
 ### Semantic Versioning
@@ -35,6 +97,3 @@ This repository contains github action for release automation. The automation sy
   - a fix to README.md has been added
   - a fix to tests or test framework has been added
   - a simple refactoring has been added
-
-## OpenSQL Branch Policy
-- [Branch Policy](http://192.168.1.153:8080/index.php/%EC%82%AC%EC%9A%A9%EC%9E%90:%EC%9D%B4%EC%83%81%EB%AA%85/Policy/OpenSQL_versioning)

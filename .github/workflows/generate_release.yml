@@ -6,6 +6,9 @@ on:
       RELEASE_NOTE:
         required: true
         type: string
+      INCREMENTAL_TYPE:
+        required: true
+        type: string
     secrets:
       GIT_ACCESS_TOKEN:
         required: true
@@ -14,14 +17,8 @@ jobs:
   generate_new_release:
     runs-on: ubuntu-latest
     steps:
-      - name: Get version incremental type
-        id: get_incremental_type
-        uses: tmaxopensql/release-automation/.github/workflows/check_pr_branch_type.yml@main
-
       - name: Check the version incremental type
         id: check_incremental_type
-        env:
-          INCREMENTAL_TYPE: ${{ steps.get_incremental_type.outputs.incremental_type }}
         run: |
           if [ ${{ env.INCREMENTAL_TYPE }} != 'UNKNOWN' ] ; then
             echo "INCREMENTAL_TYPE=${{ env.INCREMENTAL_TYPE }}" >> $GITHUB_ENV

@@ -19,7 +19,6 @@ jobs:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         run: |
           branch_prefix=$(echo ${{ env.BRANCH_NAME }} | cut -d '/' -f1)
-          echo "branch_prefix=$branch_prefix" >> $GITHUB_ENV
           if [ "$branch_prefix" == "release" ]; then
             incremental_type=MAJOR
           elif [ "$branch_prefix" == "feature" ]; then
@@ -41,7 +40,7 @@ jobs:
           
       - name: Error Handling
         id: error_handling
-        if: ${{ env.needs_error_handling }}
+        if: ${{ env.needs_error_handling == true }}
         run: |          
           case "$branch_prfix" in
             # Exceptions for wrong branch name

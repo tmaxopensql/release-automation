@@ -35,6 +35,7 @@ jobs:
           if [ "$incremental_type" == "UNKNOWN" ] ; then
             echo "needs_error_handling=true" >> $GITHUB_ENV
           else
+            echo "needs_error_handling=false" >> $GITHUB_ENV
             echo "incremental_type=$incremental_type" >> $GITHUB_OUTPUT
           fi
           

@@ -111,10 +111,8 @@ jobs:
 
       - name: Create release
         if: ${{ env.INCREMENTAL_TYPE != 'NONE' }}
-        uses: actions/create-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
             tag_name: 'v${{ steps.new_version.outputs.updated-version }}'
-            release_name: 'v${{ steps.new_version.outputs.updated-version }}'
             body: ${{ inputs.RELEASE_NOTE }}
+            token: ${{ secrets.GIT_ACCESS_TOKEN }}

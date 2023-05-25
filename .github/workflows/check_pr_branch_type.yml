@@ -2,7 +2,7 @@ name: check_pull_request_branch_type
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, edited]
     branches: [main]
 
 jobs:

@@ -24,7 +24,7 @@ jobs:
               ;;
             
             # These are the special exceptions
-            "gh-action")
+            "gh-action"|"dependabot")
               acceptable_prefix=true
               ;;
             
